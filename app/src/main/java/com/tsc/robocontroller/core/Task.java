@@ -1,4 +1,4 @@
-package com.tsc.robocontroller;
+package com.tsc.robocontroller.core;
 
 import android.os.Handler;
 import android.view.MotionEvent;
@@ -6,16 +6,12 @@ import android.view.View;
 
 public class Task implements View.OnTouchListener, Runnable {
 
-    public static final int MOVE_UP = 0;
-    public static final int MOVE_RIGHT = 1;
-    public static final int MOVE_DOWN = 2;
-    public static final int MOVE_LEFT = 3;
-
     private Handler handler;
-    private final int delay, taskType;
+    private final int taskType;
 
-    public Task(int taskType,int delay) {
-        this.delay = delay;
+    private NodeMCU mcu = NodeMCU.getInstance();
+
+    public Task(int taskType) {
         this.taskType = taskType;
     }
 
@@ -26,13 +22,13 @@ public class Task implements View.OnTouchListener, Runnable {
                 v.performClick();
                 if(handler != null) return true;
                 handler = new Handler();
-                handler.postDelayed(this, delay);
+                handler.postDelayed(this, 500);
                 break;
                 case MotionEvent.ACTION_UP:
                     if(handler == null) return true;
                     handler.removeCallbacks(this);
                     handler = null;
-                    // call halt
+                    mcu.sendCommand(Commands.HALT, -1);
                     break;
         }
         return false;
@@ -42,15 +38,15 @@ public class Task implements View.OnTouchListener, Runnable {
     @Override
     public void run() {
         switch (taskType) {
-            case MOVE_UP:
+            case Commands.MOVE_UP:
                 break;
-            case MOVE_RIGHT:
+            case Commands.MOVE_RIGHT:
                 break;
-            case MOVE_DOWN:
+            case Commands.MOVE_DOWN:
                 break;
-            case MOVE_LEFT:
+            case Commands.MOVE_LEFT:
                 break;
         }
-        handler.postDelayed(this, delay);
+        handler.postDelayed(this, 500);
     }
 }

@@ -6,16 +6,21 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 
+import com.google.android.material.slider.Slider;
+import com.tsc.robocontroller.core.Commands;
+import com.tsc.robocontroller.core.NodeMCU;
+import com.tsc.robocontroller.core.Task;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button upBtn, rightBtn, downBtn, leftBtn;
+    private Slider slider;
 
     private void initWidgets() {
         ActionBar actionBar = getSupportActionBar();
@@ -25,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
         rightBtn = findViewById(R.id.rightBtn);
         downBtn = findViewById(R.id.downBtn);
         leftBtn = findViewById(R.id.leftBtn);
+
+        slider = findViewById(R.id.slider);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -35,11 +42,25 @@ public class MainActivity extends AppCompatActivity {
 
         initWidgets();
 
-        upBtn.setOnTouchListener(new Task(Task.MOVE_UP, 500));
-        rightBtn.setOnTouchListener(new Task(Task.MOVE_RIGHT, 500));
-        downBtn.setOnTouchListener(new Task(Task.MOVE_DOWN, 500));
-        leftBtn.setOnTouchListener(new Task(Task.MOVE_LEFT, 500));
+        upBtn.setOnTouchListener(new Task(Commands.MOVE_UP));
+        rightBtn.setOnTouchListener(new Task(Commands.MOVE_RIGHT));
+        downBtn.setOnTouchListener(new Task(Commands.MOVE_DOWN));
+        leftBtn.setOnTouchListener(new Task(Commands.MOVE_LEFT));
+
+        slider.addOnSliderTouchListener(onSliderTouchListener);
     }
+
+    private final Slider.OnSliderTouchListener onSliderTouchListener = new Slider.OnSliderTouchListener() {
+        @Override
+        public void onStartTrackingTouch(@NonNull Slider slider) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(@NonNull Slider slider) {
+            NodeMCU.getInstance().sendCommand(Commands.SET_MSPEED, (int) slider.getValue());
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -47,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
