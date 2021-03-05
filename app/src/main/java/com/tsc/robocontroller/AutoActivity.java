@@ -2,8 +2,10 @@ package com.tsc.robocontroller;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -39,5 +41,15 @@ public class AutoActivity extends AppCompatActivity {
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage("Do you really want to exit ?")
+                .setPositiveButton("Yes", (dialog, which) -> finish())
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 }
