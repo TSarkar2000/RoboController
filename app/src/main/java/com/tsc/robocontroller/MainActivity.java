@@ -1,26 +1,41 @@
 package com.tsc.robocontroller;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Button;
-
 import com.google.android.material.slider.Slider;
 import com.tsc.robocontroller.core.Commands;
 import com.tsc.robocontroller.core.NodeMCU;
 import com.tsc.robocontroller.core.Task;
+import com.tsc.robocontroller.utils.Prefs;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button upBtn, rightBtn, downBtn, leftBtn;
+    private Button upBtn;
+    private Button rightBtn;
+    private Button downBtn;
+    private Button leftBtn;
+    private Button powerBtn;
     private Slider slider;
+    private TextView mainDisplay;
+
+    private final NodeMCU mcu = NodeMCU.getInstance();
+    private SharedPreferences preferences;
+
+    int rotAngle = 0;
 
     private void initWidgets() {
         ActionBar actionBar = getSupportActionBar();
@@ -30,8 +45,34 @@ public class MainActivity extends AppCompatActivity {
         rightBtn = findViewById(R.id.rightBtn);
         downBtn = findViewById(R.id.downBtn);
         leftBtn = findViewById(R.id.leftBtn);
+        powerBtn = findViewById(R.id.ctrlBtn);
+        powerBtn.setOnClickListener(v -> {
+            Task t = new Task("", preferences);
+            if (powerBtn.getText().equals("start")) {
+                enableViews(true);
+                powerBtn.setText("stop");
+                t.begin();
+            } else {
+                enableViews(false);
+                powerBtn.setText("start");
+                t.stop();
+            }
+        });
 
         slider = findViewById(R.id.slider);
+
+        mainDisplay = findViewById(R.id.mainDisplay);
+
+        ScrollView scrollView = findViewById(R.id.scrollView);
+        scrollView.fullScroll(View.FOCUS_DOWN);
+    }
+
+    private void enableViews(boolean enable) {
+        upBtn.setEnabled(enable);
+        rightBtn.setEnabled(enable);
+        leftBtn.setEnabled(enable);
+        downBtn.setEnabled(enable);
+        slider.setEnabled(enable);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -40,14 +81,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        preferences = getApplicationContext().getSharedPreferences("settings", MODE_PRIVATE);
+
         initWidgets();
 
-        upBtn.setOnTouchListener(new Task(Commands.MOVE_UP));
-        rightBtn.setOnTouchListener(new Task(Commands.MOVE_RIGHT));
-        downBtn.setOnTouchListener(new Task(Commands.MOVE_DOWN));
-        leftBtn.setOnTouchListener(new Task(Commands.MOVE_LEFT));
+        rotAngle = preferences.getInt(Prefs.KEY_ROTATIONS, 0);
+
+        upBtn.setOnTouchListener(new Task(Commands.MOVE_UP, preferences));
+        rightBtn.setOnTouchListener(new Task(Commands.MOVE_RIGHT, preferences));
+        downBtn.setOnTouchListener(new Task(Commands.MOVE_DOWN, preferences));
+        leftBtn.setOnTouchListener(new Task(Commands.MOVE_LEFT, preferences));
 
         slider.addOnSliderTouchListener(onSliderTouchListener);
+        mcu.setOnCommandSentListener(onCommandSentListener);
     }
 
     private final Slider.OnSliderTouchListener onSliderTouchListener = new Slider.OnSliderTouchListener() {
@@ -58,8 +104,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onStopTrackingTouch(@NonNull Slider slider) {
-            NodeMCU.getInstance().sendCommand(Commands.SET_MSPEED, (int) slider.getValue());
+            mcu.sendCommand(Commands.SET_MSPEED, (int) slider.getValue());
         }
+    };
+
+    private final StringBuilder sb = new StringBuilder();
+    private final NodeMCU.OnCommandSentListener onCommandSentListener = commandOrError -> {
+        sb.append(commandOrError).append("\n");
+        runOnUiThread(() -> {
+            mainDisplay.setText(sb.toString());
+        });
     };
 
     @Override
@@ -78,6 +132,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case R.id.clearLogs:
+                mainDisplay.setText("");
+                sb.delete(0, sb.length());
                 break;
 
         }

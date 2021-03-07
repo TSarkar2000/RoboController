@@ -77,8 +77,24 @@ public class ParentActivity extends AppCompatActivity {
                 }).check();
     }
 
+    boolean flag = false;
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        flag = true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(flag)
+           new Worker().execute(preferences.getString(Prefs.KEY_IP, Prefs.DEF_IP));
+        flag = false;
+    }
+
     class Worker extends AsyncTask<String, Void, Void> {
-        //todo: proper alerts, shared prefs
+        
         private ProgressBar progressBar;
         private String str, title = "", ip;
         private boolean connectionEstablished = false;
@@ -106,10 +122,11 @@ public class ParentActivity extends AppCompatActivity {
                         .setTitle(title)
                         .setMessage(str)
                         .setPositiveButton("Retry", (dialog, which) -> {
-                            new Worker().execute();
+                            new Worker().execute(ip);
                         })
                         .setNegativeButton("Change IP addr", (dialog, which) -> {
-
+                            dialog.dismiss();
+                            startActivity(new Intent(ParentActivity.this, SettingsActivity.class));
                         }).setCancelable(false)
                         .create()
                         .show();

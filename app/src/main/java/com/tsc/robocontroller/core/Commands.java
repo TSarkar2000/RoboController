@@ -9,26 +9,18 @@ public class Commands {
      * 3 - left
      * 4 - halt
      * 5 - set motor speed (150 - 255)
-     * "71"+ any integer = rotate left by specified integer (in degrees) (eg, 7190)
-     * "72" + any integer = rotate right by specified integer (in degrees) (eg, 72180)
+     * "L"+ any integer = rotate left by specified integer (in degrees) (eg, L90)
+     * "R" + any integer = rotate right by specified integer (in degrees) (eg, R180)
      */
 
-    public static final int MOVE_UP = 0;
-    public static final int MOVE_RIGHT = 1;
-    public static final int MOVE_DOWN = 2;
-    public static final int MOVE_LEFT = 3;
-    public static final int HALT = 4;
+    public static final String MOVE_UP = "0";
+    public static final String MOVE_RIGHT = "1";
+    public static final String MOVE_DOWN = "2";
+    public static final String MOVE_LEFT = "3";
+    public static final String HALT = "4";
 
-    public static final int SET_MSPEED = 5;
-    public static final int MODE_MANUAL = 8;
-    public static final int MODE_AUTO = 9;
-
-    public static int getLeft(int degrees) {
-        return Integer.parseInt("71"+degrees);
-    }
-
-    public static int getRight(int degrees) {
-        return Integer.parseInt("72"+degrees);
-    }
+    public static final String SET_MSPEED = "5";
+    public static final String MODE_MANUAL = "8";
+    public static final String MODE_AUTO = "9";
 
 }
